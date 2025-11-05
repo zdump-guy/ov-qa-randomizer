@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Question Randomizer</title>
+    
+    <!-- Favicons -->
+    <link rel="icon" type="image/x-icon" href="favicon/favicon.ico">
+    <link rel="icon" type="image/svg+xml" href="favicon/favicon.svg">
+    <link rel="icon" type="image/png" sizes="96x96" href="favicon/favicon-96x96.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
+    <link rel="manifest" href="favicon/site.webmanifest">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Roboto+Slab:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root{
+            /* Core palette (dimmed, monochrome) */
+            --bg-900: #0f0f10; /* page background */
+            --bg-800: #141416;
+            --bg-700: #1a1a1a;
+            --bg-600: #222224;
+            --bg-500: #2d2d2d;
+            --muted-400: #3a3a3a;
+            --muted-300: #4a4a4a;
+            --muted-200: #5b5b5b;
+            --text-100: #e6e6e6; /* main text */
+            --text-80: #cfcfcf;   /* secondary text */
+            --accent-1: #6b7175;  /* very dim cool gray accent */
+            --accent-2: #505356;  /* darker accent */
+            --glass: rgba(255,255,255,0.03);
+            --border: rgba(255,255,255,0.06);
+            --radius: 12px;
+            --mono-font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+            --serif-font: 'Roboto Slab', serif;
+        }
+
+        *{box-sizing:border-box}
+        html,body{height:100%}
+        body{
+            margin:0;
+            background:linear-gradient(180deg,var(--bg-900),var(--bg-800));
+            color:var(--text-100);
+            font-family:var(--mono-font);
+            -webkit-font-smoothing:antialiased;
+            -moz-osx-font-smoothing:grayscale;
+            padding:24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        /* Custom styles for feedback animations */
+        .feedback {
+            transition: all 0.3s ease-in-out;
+            opacity: 0;
+            transform: translateY(10px);
+            height: 2rem; /* Reserve space */
+        }
+        .feedback.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .feedback.correct { color: #4ade80; } /* green */
+        .feedback.wrong { color: #f87171; } /* red */
+        .feedback.checkpoint { color: #60a5fa; } /* blue */
+
+        /* Custom styles for answer buttons */
+        .answer-btn.correct {
+            background: linear-gradient(180deg, rgba(74, 222, 128, 0.15), rgba(74, 222, 128, 0.1));
+            border-color: #4ade80;
+            color: #4ade80;
+            font-weight: 600;
+        }
+        .answer-btn.wrong {
+            background: linear-gradient(180deg, rgba(248, 113, 113, 0.15), rgba(248, 113, 113, 0.1));
+            border-color: #f87171;
+            color: #f87171;
+            font-weight: 600;
+        }
+        .answer-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        /* Footer styles */
+        .footer {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.015));
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            text-align: center;
+            max-width: 42rem;
+            width: 100%;
+        }
+        .footer h3 {
+            font-family: var(--serif-font);
+            font-weight: 600;
+            margin: 0 0 1rem 0;
+            font-size: 1.125rem;
+            color: var(--text-100);
+        }
+        .social-links {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 0.75rem;
+        }
+        .social-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.015));
+            border: 1px solid var(--border);
+            color: var(--text-100);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+        .social-link:hover {
+            background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.03));
+            border-color: var(--muted-300);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+
+    <main class="max-w-2xl w-full p-6 sm:p-8 rounded-xl transition-all" style="background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.015)); border: 1px solid var(--border);">
+
+        <!-- 1. Upload Container -->
+        <div id="upload-container">
+            <h1 class="text-3xl font-bold text-center mb-4" style="color: var(--text-100); font-family: var(--serif-font);">CSV Quizzer</h1>
+            <p class="text-center mb-2" style="color: var(--text-80);">
+                Upload your quiz file to begin.
+            </p>
+            <p class="text-center text-xs mb-6 p-2 rounded-md" style="color: var(--text-80); background: rgba(255,255,255,0.01); border: 1px solid var(--border);">
+                <strong>Format:</strong> Each line must have 6 columns:
+                <br>
+                <code>Question,OptionA,OptionB,OptionC,OptionD,CorrectAnswerText</code>
+                <br>
+                (Fields should not contain commas)
+            </p>
+            <div class="space-y-4">
+                <input type="file" id="csv-file" accept=".csv" class="block w-full text-sm
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-lg file:border-0
+                    file:text-sm file:font-semibold
+                    transition-all" style="color: var(--text-80); background: var(--bg-700); border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem;" />
+                <button id="start-button" disabled class="w-full py-3 px-6 rounded-lg font-semibold text-lg transition-all shadow" style="background: linear-gradient(180deg, var(--muted-300), var(--muted-200)); color: var(--text-100); border: 1px solid var(--border);">
+                    Start Quiz
+                </button>
+            </div>
+        </div>
+
+        <!-- 2. Quiz Container -->
+        <div id="quiz-container" class="hidden">
+            <!-- Stats Bar -->
+            <div class="p-4 rounded-lg mb-6 text-sm" style="background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.015)); border: 1px solid var(--border); color: var(--text-100);">
+                <div class="flex flex-wrap justify-between items-center gap-4">
+                    <span class="font-medium">
+                        Question: <span id="question-number" class="font-bold" style="color: #60a5fa;">1</span> / <span id="total-questions" class="font-bold">0</span>
+                    </span>
+                    <span class="font-medium" style="color: #fbbf24;">
+                        Streak: <span id="streak-counter" class="font-bold">0</span> / 5
+                    </span>
+                    <span class="font-medium" style="color: #4ade80;">
+                        Checkpoint: Q<span id="checkpoint-marker" class="font-bold">1</span>
+                    </span>
+                </div>
+                <div class="mt-3 pt-3 flex justify-center gap-6" style="border-top: 1px solid var(--border);">
+                    <span class="font-medium">Correct: <span id="correct-count" class="font-bold" style="color: #4ade80;">0</span></span>
+                    <span class="font-medium">Wrong: <span id="wrong-count" class="font-bold" style="color: #f87171;">0</span></span>
+                </div>
+            </div>
+
+            <!-- Question and Answers -->
+            <div id="question-text" class="text-xl sm:text-2xl font-semibold mb-6 min-h-[4rem]" style="color: var(--text-100); font-family: var(--serif-font);">
+                <!-- Question text loads here -->
+            </div>
+            <div id="answers-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Answer buttons load here -->
+            </div>
+
+            <!-- Feedback Message -->
+            <div id="feedback-message" class="feedback text-center text-lg font-medium mt-4">
+                <!-- Feedback appears here -->
+            </div>
+        </div>
+
+        <!-- 3. Results Container -->
+        <div id="results-container" class="hidden text-center">
+            <h1 class="text-3xl font-bold mb-4" style="color: var(--text-100); font-family: var(--serif-font);">Quiz Complete!</h1>
+            <p class="text-xl mb-8" style="color: var(--text-80);">
+                You got <span id="final-correct" class="font-bold" style="color: #4ade80;">0</span> right
+                and <span id="final-wrong" class="font-bold" style="color: #f87171;">0</span> wrong.
+            </p>
+            <div class="space-y-4">
+                <button id="restart-button" class="w-full py-3 px-6 rounded-lg font-semibold text-lg transition-all shadow" style="background: linear-gradient(180deg, var(--muted-300), var(--muted-200)); color: var(--text-100); border: 1px solid var(--border);">
+                    Start Over
+                </button>
+                <button id="new-file-button" class="w-full py-3 px-6 rounded-lg font-semibold text-lg transition-all shadow" style="background: linear-gradient(180deg, var(--bg-600), var(--bg-500)); color: var(--text-100); border: 1px solid var(--border);">
+                    Upload New File
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <h3>Developed and Published By One Voxel</h3>
+        <div class="social-links">
+            <a href="https://www.linkedin.com/company/one-voxel-dev/" target="_blank" class="social-link">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                </svg>
+                LinkedIn
+            </a>
+            <a href="https://www.instagram.com/onevoxel_dev?igsh=aGxqbjhncGVuZTJx" target="_blank" class="social-link">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                </svg>
+                Instagram
+            </a>
+            <a href="https://wa.me/201005793518" target="_blank" class="social-link">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+                </svg>
+                WhatsApp
+            </a>
+            <a href="mailto:onevoxel.dev@gmail.com" class="social-link">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M0 3v18h24v-18h-24zm6.623 7.929l-4.623 5.712v-9.458l4.623 3.746zm-4.141-5.929h19.035l-9.517 7.713-9.518-7.713zm5.694 7.188l3.824 3.099 3.83-3.104 5.612 6.817h-18.779l5.513-6.812zm9.208-1.264l4.616-3.741v9.348l-4.616-5.607z"/>
+                </svg>
+                Email
+            </a>
+        </div>
+    </footer>
+
+    <script>
+        // DOM Elements
+        const uploadContainer = document.getElementById('upload-container');
+        const quizContainer = document.getElementById('quiz-container');
+        const resultsContainer = document.getElementById('results-container');
+
+        const csvFileInput = document.getElementById('csv-file');
+        const startButton = document.getElementById('start-button');
+        const restartButton = document.getElementById('restart-button');
+        const newFileButton = document.getElementById('new-file-button');
+
+        const questionNumberSpan = document.getElementById('question-number');
+        const totalQuestionsSpan = document.getElementById('total-questions');
+        const streakCounterSpan = document.getElementById('streak-counter');
+        const checkpointMarkerSpan = document.getElementById('checkpoint-marker');
+        const correctCountSpan = document.getElementById('correct-count');
+        const wrongCountSpan = document.getElementById('wrong-count');
+
+        const questionText = document.getElementById('question-text');
+        const answersGrid = document.getElementById('answers-grid');
+        const feedbackMessage = document.getElementById('feedback-message');
+
+        const finalCorrectSpan = document.getElementById('final-correct');
+        const finalWrongSpan = document.getElementById('final-wrong');
+
+        // Quiz State
+        let allQuestions = []; // Stores the parsed { question, options, correct } objects
+        let shuffledQuestions = [];
+        let currentQuestionIndex = 0;
+        let checkpointIndex = 0;
+        let consecutiveStreak = 0;
+        let totalCorrect = 0;
+        let totalWrong = 0;
+        let feedbackTimeout;
+
+        // --- Event Listeners ---
+
+        csvFileInput.addEventListener('change', handleFile);
+        startButton.addEventListener('click', startQuiz);
+        answersGrid.addEventListener('click', handleAnswer);
+        restartButton.addEventListener('click', startQuiz);
+        newFileButton.addEventListener('click', resetToUpload);
+
+        // --- File Handling ---
+
+        function handleFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                parseCSV(event.target.result);
+            };
+            reader.readAsText(file);
+            
+            // Update button styling when enabled
+            startButton.disabled = false;
+            startButton.style.cssText = 'background: linear-gradient(180deg, var(--muted-300), var(--muted-200)); color: var(--text-100); border: 1px solid var(--border); cursor: pointer;';
+        }
+
+        function parseCSV(csvText) {
+            allQuestions = [];
+            const lines = csvText.split('\n').filter(line => line.trim() !== '');
+
+            for (const line of lines) {
+                // Simple CSV parse, assumes no commas in fields
+                const parts = line.split(',');
+
+                if (parts.length === 6) {
+                    const [question, o1, o2, o3, o4, correct] = parts.map(s => s.trim().replace(/^"|"$/g, '')); // Basic quote stripping
+                    if (question && o1 && o2 && o3 && o4 && correct) {
+                        allQuestions.push({
+                            question,
+                            options: [o1, o2, o3, o4],
+                            correct
+                        });
+                    }
+                } else {
+                    console.warn('Skipping malformed line:', line);
+                }
+            }
+            
+            if (allQuestions.length > 0) {
+                startButton.disabled = false;
+                startButton.textContent = `Start Quiz (${allQuestions.length} Questions)`;
+                startButton.style.cssText = 'background: linear-gradient(180deg, var(--muted-300), var(--muted-200)); color: var(--text-100); border: 1px solid var(--border); cursor: pointer;';
+            } else {
+                startButton.disabled = true;
+                startButton.textContent = 'Invalid File Format';
+                startButton.style.cssText = 'background: var(--bg-600); color: var(--text-80); border: 1px solid var(--border); cursor: not-allowed; opacity: 0.5;';
+            }
+        }
+
+        // --- Quiz Logic ---
+
+        function startQuiz() {
+            // 1. Reset state
+            currentQuestionIndex = 0;
+            checkpointIndex = 0;
+            consecutiveStreak = 0;
+            totalCorrect = 0;
+            totalWrong = 0;
+
+            // 2. Shuffle questions (Fisher-Yates shuffle)
+            shuffledQuestions = shuffleArray([...allQuestions]);
+
+            // 3. Update UI
+            totalQuestionsSpan.textContent = shuffledQuestions.length;
+            updateStats();
+            
+            // 4. Show/Hide Containers
+            uploadContainer.classList.add('hidden');
+            resultsContainer.classList.add('hidden');
+            quizContainer.classList.remove('hidden');
+
+            // 5. Display first question
+            displayQuestion();
+        }
+
+        function displayQuestion() {
+            // Check for quiz end
+            if (currentQuestionIndex >= shuffledQuestions.length) {
+                endQuiz();
+                return;
+            }
+
+            // Clear old feedback
+            showFeedback('', null);
+
+            // Get current question
+            const q = shuffledQuestions[currentQuestionIndex];
+            const correctAnswer = q.correct;
+            // Randomize the order of answers
+            const shuffledOptions = shuffleArray([...q.options]);
+
+            // Update UI text
+            questionText.textContent = q.question;
+            questionNumberSpan.textContent = currentQuestionIndex + 1;
+
+            // Create answer buttons
+            answersGrid.innerHTML = ''; // Clear old buttons
+            shuffledOptions.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'answer-btn w-full py-4 px-5 rounded-lg text-left text-lg focus:outline-none transition-all';
+                button.style.cssText = 'background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.015)); border: 1px solid var(--border); color: var(--text-100);';
+                button.textContent = option;
+                button.dataset.answer = option; // Store the answer text
+                
+                // Mark the correct button for checking
+                if (option === correctAnswer) {
+                    button.dataset.correct = 'true';
+                }
+                
+                answersGrid.appendChild(button);
+            });
+        }
+
+        function handleAnswer(e) {
+            // Use event delegation
+            if (!e.target.classList.contains('answer-btn')) return;
+
+            // Disable all buttons to prevent double-clicking
+            document.querySelectorAll('.answer-btn').forEach(btn => btn.disabled = true);
+
+            const selectedBtn = e.target;
+            const isCorrect = selectedBtn.dataset.correct === 'true';
+
+            let nextQuestionIndex = currentQuestionIndex;
+            let feedbackDelay = 1500; // 1.5 seconds
+
+            if (isCorrect) {
+                selectedBtn.classList.add('correct');
+                totalCorrect++;
+                consecutiveStreak++;
+                showFeedback('Correct!', 'correct');
+
+                // Checkpoint logic
+                if (consecutiveStreak === 5) {
+                    checkpointIndex = currentQuestionIndex + 1;
+                    consecutiveStreak = 0; // Reset streak
+                    // Show checkpoint message after "Correct!"
+                    setTimeout(() => showFeedback(`Checkpoint Reached! Progress saved at Q${checkpointIndex + 1}`, 'checkpoint'), 750);
+                }
+                
+                nextQuestionIndex = currentQuestionIndex + 1;
+
+            } else {
+                selectedBtn.classList.add('wrong');
+                totalWrong++;
+                consecutiveStreak = 0;
+                feedbackDelay = 3000; // 3 seconds, more time to see error
+
+                // Highlight the correct answer
+                const correctBtn = answersGrid.querySelector('[data-correct="true"]');
+                if (correctBtn) {
+                    correctBtn.classList.add('correct');
+                }
+
+                showFeedback(`Wrong! Returning to checkpoint (Q${checkpointIndex + 1})`, 'wrong');
+                nextQuestionIndex = checkpointIndex; // Go back to checkpoint
+            }
+
+            updateStats();
+
+            // Go to the next question (or checkpoint) after a delay
+            setTimeout(() => {
+                currentQuestionIndex = nextQuestionIndex;
+                displayQuestion();
+            }, feedbackDelay);
+        }
+
+        function endQuiz() {
+            quizContainer.classList.add('hidden');
+            resultsContainer.classList.remove('hidden');
+            
+            finalCorrectSpan.textContent = totalCorrect;
+            finalWrongSpan.textContent = totalWrong;
+        }
+
+        // --- UI & Utility Functions ---
+
+        function updateStats() {
+            streakCounterSpan.textContent = consecutiveStreak;
+            checkpointMarkerSpan.textContent = checkpointIndex + 1;
+            correctCountSpan.textContent = totalCorrect;
+            wrongCountSpan.textContent = totalWrong;
+        }
+
+        function showFeedback(message, type) {
+            if (feedbackTimeout) clearTimeout(feedbackTimeout);
+            
+            feedbackMessage.textContent = message;
+            feedbackMessage.className = `feedback ${type || ''}`;
+            
+            if (message) {
+                // Force reflow to restart animation
+                void feedbackMessage.offsetWidth; 
+                feedbackMessage.classList.add('show');
+            }
+        }
+
+        function resetToUpload() {
+            resultsContainer.classList.add('hidden');
+            uploadContainer.classList.remove('hidden');
+            
+            // Reset file input and state
+            allQuestions = [];
+            csvFileInput.value = '';
+            startButton.disabled = true;
+            startButton.textContent = 'Start Quiz';
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+    </script>
+</body>
+</html>
