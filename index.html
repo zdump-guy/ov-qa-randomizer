@@ -170,13 +170,18 @@
             <p class="text-center mb-2 text-sm sm:text-base" style="color: var(--text-80);">
                 Upload your quiz file to begin.
             </p>
-            <p class="text-center text-xs mb-4 sm:mb-6 p-2 rounded-md" style="color: var(--text-80); background: rgba(255,255,255,0.01); border: 1px solid var(--border);">
-                <strong>Format:</strong> Each line must have 6 columns:
-                <br>
-                <code style="font-size: 0.7rem;">Question,OptionA,OptionB,OptionC,OptionD,CorrectAnswerText</code>
-                <br>
-                <span class="text-xs">(Fields should not contain commas)</span>
-            </p>
+            <div class="text-center mb-4 sm:mb-6 p-3 sm:p-4 rounded-md" style="color: var(--text-80); background: rgba(255,255,255,0.01); border: 1px solid var(--border);">
+                <p class="text-sm sm:text-base mb-3"><strong>Developer .csv files for IS, OS and Networking</strong></p>
+                <button id="show-files-btn" class="py-2 px-4 rounded-lg font-semibold text-sm transition-all" style="background: linear-gradient(180deg, var(--muted-300), var(--muted-200)); color: var(--text-100); border: 1px solid var(--border);">
+                    Click Here!!
+                </button>
+                <div class="mt-3 pt-3" style="border-top: 1px solid var(--border);">
+                    <p class="text-sm mb-2">Or go to Gemini and make it yourself</p>
+                    <a href="https://gemini.google.com" target="_blank" class="inline-block py-2 px-4 rounded-lg font-semibold text-sm transition-all" style="background: linear-gradient(180deg, var(--bg-600), var(--bg-500)); color: var(--text-100); border: 1px solid var(--border); text-decoration: none;">
+                        Click Here
+                    </a>
+                </div>
+            </div>
             <div class="space-y-4">
                 <input type="file" id="csv-file" accept=".csv" class="block w-full text-sm
                     file:mr-2 file:py-2 file:px-3
@@ -243,6 +248,57 @@
 
     </main>
 
+    <!-- Files Modal -->
+    <div id="files-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background: rgba(0,0,0,0.8);">
+        <div class="max-w-md w-full p-4 sm:p-6 rounded-xl" style="background: linear-gradient(180deg, var(--bg-700), var(--bg-800)); border: 1px solid var(--border); max-height: 90vh; overflow-y: auto;">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl sm:text-2xl font-bold" style="color: var(--text-100); font-family: var(--serif-font);">Available Quiz Files</h2>
+                <button id="close-modal-btn" class="text-2xl font-bold transition-all" style="color: var(--text-100);">&times;</button>
+            </div>
+            
+            <div class="space-y-4">
+                <!-- IS File -->
+                <div class="p-3 sm:p-4 rounded-lg" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
+                    <h3 class="font-semibold mb-3 text-sm sm:text-base" style="color: var(--text-100);">Foundation of Information Systems</h3>
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <button class="auto-add-btn flex-1 py-2 px-3 rounded-lg font-semibold text-xs sm:text-sm transition-all" data-file="csv-files/is.csv" style="background: linear-gradient(180deg, #4ade80, #22c55e); color: #000; border: 1px solid #4ade80;">
+                            Auto Add
+                        </button>
+                        <a href="csv-files/is.csv" download class="flex-1 py-2 px-3 rounded-lg font-semibold text-xs sm:text-sm transition-all text-center" style="background: linear-gradient(180deg, var(--muted-300), var(--muted-200)); color: var(--text-100); border: 1px solid var(--border); text-decoration: none;">
+                            Download
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- OS File -->
+                <div class="p-3 sm:p-4 rounded-lg" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
+                    <h3 class="font-semibold mb-3 text-sm sm:text-base" style="color: var(--text-100);">Operating Systems</h3>
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <button class="auto-add-btn flex-1 py-2 px-3 rounded-lg font-semibold text-xs sm:text-sm transition-all" data-file="csv-files/os.csv" style="background: linear-gradient(180deg, #4ade80, #22c55e); color: #000; border: 1px solid #4ade80;">
+                            Auto Add
+                        </button>
+                        <a href="csv-files/os.csv" download class="flex-1 py-2 px-3 rounded-lg font-semibold text-xs sm:text-sm transition-all text-center" style="background: linear-gradient(180deg, var(--muted-300), var(--muted-200)); color: var(--text-100); border: 1px solid var(--border); text-decoration: none;">
+                            Download
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Network File -->
+                <div class="p-3 sm:p-4 rounded-lg" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
+                    <h3 class="font-semibold mb-3 text-sm sm:text-base" style="color: var(--text-100);">Computer Network</h3>
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <button class="auto-add-btn flex-1 py-2 px-3 rounded-lg font-semibold text-xs sm:text-sm transition-all" data-file="csv-files/network.csv" style="background: linear-gradient(180deg, #4ade80, #22c55e); color: #000; border: 1px solid #4ade80;">
+                            Auto Add
+                        </button>
+                        <a href="csv-files/network.csv" download class="flex-1 py-2 px-3 rounded-lg font-semibold text-xs sm:text-sm transition-all text-center" style="background: linear-gradient(180deg, var(--muted-300), var(--muted-200)); color: var(--text-100); border: 1px solid var(--border); text-decoration: none;">
+                            Download
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="footer">
         <h3>Developed and Published By One Voxel</h3>
@@ -299,6 +355,12 @@
         const finalCorrectSpan = document.getElementById('final-correct');
         const finalWrongSpan = document.getElementById('final-wrong');
 
+        // Modal elements
+        const showFilesBtn = document.getElementById('show-files-btn');
+        const filesModal = document.getElementById('files-modal');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const autoAddButtons = document.querySelectorAll('.auto-add-btn');
+
         // Quiz State
         let allQuestions = []; // Stores the parsed { question, options, correct } objects
         let shuffledQuestions = [];
@@ -317,7 +379,42 @@
         restartButton.addEventListener('click', startQuiz);
         newFileButton.addEventListener('click', resetToUpload);
 
+        // Modal event listeners
+        showFilesBtn.addEventListener('click', () => {
+            filesModal.classList.remove('hidden');
+        });
+
+        closeModalBtn.addEventListener('click', () => {
+            filesModal.classList.add('hidden');
+        });
+
+        filesModal.addEventListener('click', (e) => {
+            if (e.target === filesModal) {
+                filesModal.classList.add('hidden');
+            }
+        });
+
+        // Auto-add button listeners
+        autoAddButtons.forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const filePath = btn.dataset.file;
+                await loadCSVFile(filePath);
+                filesModal.classList.add('hidden');
+            });
+        });
+
         // --- File Handling ---
+
+        async function loadCSVFile(filePath) {
+            try {
+                const response = await fetch(filePath);
+                const csvText = await response.text();
+                parseCSV(csvText);
+            } catch (error) {
+                console.error('Error loading CSV file:', error);
+                alert('Error loading the file. Please try downloading it instead.');
+            }
+        }
 
         function handleFile(e) {
             const file = e.target.files[0];
