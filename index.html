@@ -462,6 +462,8 @@
         let questionAttempts = {};
         let wrongQuestions = [];
         let isReviewMode = false;
+        let uniqueCorrectQuestions = new Set(); // Track unique correctly answered questions
+        let uniqueWrongQuestions = new Set(); // Track unique wrongly answered questions
 
         // Handle Ready Modal
         readyYesBtn.addEventListener('click', () => {
@@ -594,6 +596,8 @@
             wrongQuestions = [];
             isReviewMode = false;
             skipContainer.classList.add('hidden');
+            uniqueCorrectQuestions.clear();
+            uniqueWrongQuestions.clear();
 
             shuffledQuestions = shuffleArray([...allQuestions]);
 
@@ -618,6 +622,8 @@
             questionAttempts = {};
             isReviewMode = true;
             skipContainer.classList.add('hidden');
+            uniqueCorrectQuestions.clear();
+            uniqueWrongQuestions.clear();
 
             shuffledQuestions = [...wrongQuestions];
             wrongQuestions = [];
@@ -687,11 +693,16 @@
 
             if (isCorrect) {
                 selectedBtn.classList.add('correct');
-                totalCorrect++;
                 consecutiveStreak++;
                 
                 // Play correct sound
                 playSound(correctSound);
+                
+                // Track unique correct answer - only if never answered wrong
+                if (!uniqueWrongQuestions.has(questionKey) && !uniqueCorrectQuestions.has(questionKey)) {
+                    uniqueCorrectQuestions.add(questionKey);
+                    totalCorrect++;
+                }
                 
                 // Clear attempts for this question when answered correctly
                 if (questionAttempts[questionKey]) {
@@ -715,11 +726,22 @@
 
             } else {
                 selectedBtn.classList.add('wrong');
-                totalWrong++;
                 consecutiveStreak = 0;
                 
                 // Play wrong sound
                 playSound(wrongSound);
+                
+                // If this question was previously marked as correct, remove it
+                if (uniqueCorrectQuestions.has(questionKey)) {
+                    uniqueCorrectQuestions.delete(questionKey);
+                    totalCorrect--;
+                }
+                
+                // Track unique wrong answer
+                if (!uniqueWrongQuestions.has(questionKey)) {
+                    uniqueWrongQuestions.add(questionKey);
+                    totalWrong++;
+                }
                 
                 // Increment attempts for this specific question
                 questionAttempts[questionKey] = (questionAttempts[questionKey] || 0) + 1;
