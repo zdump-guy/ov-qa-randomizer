@@ -226,3 +226,26 @@ if (document.readyState === 'loading') {
 } else {
     initializeApp();
 }
+
+/**
+ * Footer Links Configuration
+ * Update these links as needed
+ */
+function updateFooterLinks() {
+    // You can update these links later
+    const links = {
+        linkedin: '#', // Will be updated
+        instagram: '#', // Will be updated
+        whatsapp: '#', // Will be updated
+        email: '#' // Will be updated
+    };
+
+    // Update the links
+    document.getElementById('footer-linkedin').href = links.linkedin;
+    document.getElementById('footer-instagram').href = links.instagram;
+    document.getElementById('footer-whatsapp').href = links.whatsapp;
+    document.getElementById('footer-email').href = links.email;
+}
+
+// Initialize footer links
+updateFooterLinks();
